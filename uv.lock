@@ -339,7 +339,7 @@ wheels = [
 [[package]]
 name = "clip"
 version = "1.0"
-source = { git = "https://github.com/ultralytics/CLIP.git?rev=643beff3883b5720d94b6b9c9eca12fa9fb72fb1#643beff3883b5720d94b6b9c9eca12fa9fb72fb1" }
+source = { git = "https://github.com/ultralytics/CLIP.git#88ade288431a46233f1556d1e141901b3ef0a36b" }
 dependencies = [
     { name = "ftfy" },
     { name = "regex" },
@@ -2102,6 +2102,11 @@ dino = [
     { name = "supervision" },
     { name = "transformers" },
 ]
+sam = [
+    { name = "clip" },
+    { name = "ultralytics" },
+    { name = "ultralytics-thop" },
+]
 yolo = [
     { name = "clip" },
     { name = "ultralytics" },
@@ -2121,7 +2126,8 @@ requires-dist = [
     { name = "cffi", specifier = "==2.0.0" },
     { name = "charset-normalizer", specifier = "==3.4.4" },
     { name = "click", specifier = "==8.3.1" },
-    { name = "clip", marker = "extra == 'yolo'", git = "https://github.com/ultralytics/CLIP.git?rev=643beff3883b5720d94b6b9c9eca12fa9fb72fb1" },
+    { name = "clip", marker = "extra == 'sam'", git = "https://github.com/ultralytics/CLIP.git" },
+    { name = "clip", marker = "extra == 'yolo'", git = "https://github.com/ultralytics/CLIP.git" },
     { name = "contourpy", specifier = "==1.3.3" },
     { name = "cryptography", specifier = "==46.0.3" },
     { name = "cycler", specifier = "==0.12.1" },
@@ -2201,13 +2207,15 @@ requires-dist = [
     { name = "triton", marker = "sys_platform != 'darwin'", specifier = "==3.5.1" },
     { name = "typing-extensions", specifier = "==4.15.0" },
     { name = "tzdata", specifier = "==2025.3" },
+    { name = "ultralytics", marker = "extra == 'sam'", specifier = "==8.4.6" },
     { name = "ultralytics", marker = "extra == 'yolo'", specifier = "==8.4.6" },
+    { name = "ultralytics-thop", marker = "extra == 'sam'", specifier = "==2.0.18" },
     { name = "ultralytics-thop", marker = "extra == 'yolo'", specifier = "==2.0.18" },
     { name = "urllib3", specifier = "==2.6.3" },
     { name = "watchdog", specifier = "==6.0.0" },
     { name = "wcwidth", specifier = "==0.2.14" },
 ]
-provides-extras = ["yolo", "dino"]
+provides-extras = ["yolo", "sam", "dino"]
 
 [[package]]
 name = "referencing"

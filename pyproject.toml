@@ -104,7 +104,14 @@ dependencies = [
 [project.optional-dependencies]
 # ── Ultralytics YOLO backend (app.py / cli.py) ────────────────────────────
 yolo = [
-    "clip @ git+https://github.com/ultralytics/CLIP.git@643beff3883b5720d94b6b9c9eca12fa9fb72fb1",
+    "clip @ git+https://github.com/ultralytics/CLIP.git",
+    "ultralytics==8.4.6",
+    "ultralytics-thop==2.0.18",
+]
+
+# ── SAM3 backend (app_sam.py) ─────────────────────────────────────────────
+sam = [
+    "clip @ git+https://github.com/ultralytics/CLIP.git",
     "ultralytics==8.4.6",
     "ultralytics-thop==2.0.18",
 ]
