@@ -29,6 +29,7 @@ device = get_device()
 
 class VideoProcessor:
     current_class = ''
+    current_conf = 0.25
 
     @classmethod
     def update_class(cls, new_class):
@@ -36,10 +37,14 @@ class VideoProcessor:
         names = [new_class]
         model.set_classes(names, model.get_text_pe(names))
 
+    @classmethod
+    def update_conf(cls, conf: float):
+        cls.current_conf = conf
+
     def recv(self, frame):
         img = frame.to_ndarray(format="bgr24")
         if VideoProcessor.current_class:
-            results = model.predict(img, device=device)
+            results = model.predict(img, device=device, conf=VideoProcessor.current_conf)
             plotted_img = results[0].plot()
         else:
             plotted_img = img  # no detection
@@ -55,6 +60,7 @@ mode = st.selectbox("Select mode", ["Upload Image", "Upload Video", "Live Camera
 if mode == "Upload Image":
     uploaded_file = st.file_uploader("Upload an image", type=["jpg", "png", "jpeg"])
     word = st.text_input("Enter a class to detect (e.g., person, bus)")
+    conf = st.slider("Minimum confidence", 0.01, 1.0, 0.25, 0.01)
 
     if uploaded_file is not None and word.strip():
         # Read image
@@ -66,7 +72,7 @@ if mode == "Upload Image":
         model.set_classes(names, model.get_text_pe(names))
 
         # Run prediction
-        results = model.predict(image, device=device)
+        results = model.predict(image, device=device, conf=conf)
 
         # Get the plotted result image
         plotted_img = results[0].plot()
@@ -76,6 +82,7 @@ if mode == "Upload Image":
 elif mode == "Upload Video":
     uploaded_video = st.file_uploader("Upload a video", type=["mp4", "avi", "mov"])
     word = st.text_input("Enter a class to detect (e.g., person, bus)")
+    conf = st.slider("Minimum confidence", 0.01, 1.0, 0.25, 0.01)
     frame_skip = st.slider("Process every Nth frame (higher = faster, less detailed)", 1, 10, 5)
 
     if uploaded_video is not None and word.strip():
@@ -107,7 +114,7 @@ elif mode == "Upload Video":
                 model.set_classes(names, model.get_text_pe(names))
 
                 # Run prediction
-                results = model.predict(frame, device=device)
+                results = model.predict(frame, device=device, conf=conf)
 
                 # Get the plotted result image
                 plotted_img = results[0].plot()
@@ -119,9 +126,11 @@ elif mode == "Upload Video":
             st.write("Video processing completed.")
 elif mode == "Live Camera":
     word = st.text_input("Enter a class to detect (e.g., person, bus)")
+    conf = st.slider("Minimum confidence", 0.01, 1.0, 0.25, 0.01)
 
     if word.strip():
         VideoProcessor.update_class(word.strip())
+        VideoProcessor.update_conf(conf)
 
         if not os.path.exists('/dev/video0'):
             st.error("Camera device not found. Make sure /dev/video0 exists and camera is connected.")
