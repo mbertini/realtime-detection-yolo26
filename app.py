@@ -2,17 +2,30 @@ import streamlit as st
 from ultralytics import YOLO
 import cv2
 import numpy as np
-import time
 import os
 import av
+import torch
 from streamlit_webrtc import webrtc_streamer
+
+def get_device():
+    """Detect and return the best available device (MPS > CUDA > CPU)"""
+    if torch.backends.mps.is_available():
+        return "mps"
+    elif torch.cuda.is_available():
+        return "cuda"
+    else:
+        return "cpu"
 
 @st.cache_resource
 def load_model():
+    device = get_device()
+    st.info(f"Using device: {device.upper()}")
     model = YOLO("yoloe-26l-seg.pt")
+    model.to(device)
     return model
 
 model = load_model()
+device = get_device()
 
 class VideoProcessor:
     current_class = ''
@@ -26,7 +39,7 @@ class VideoProcessor:
     def recv(self, frame):
         img = frame.to_ndarray(format="bgr24")
         if VideoProcessor.current_class:
-            results = model.predict(img)
+            results = model.predict(img, device=device)
             plotted_img = results[0].plot()
         else:
             plotted_img = img  # no detection
@@ -53,7 +66,7 @@ if mode == "Upload Image":
         model.set_classes(names, model.get_text_pe(names))
 
         # Run prediction
-        results = model.predict(image)
+        results = model.predict(image, device=device)
 
         # Get the plotted result image
         plotted_img = results[0].plot()
@@ -94,7 +107,7 @@ elif mode == "Upload Video":
                 model.set_classes(names, model.get_text_pe(names))
 
                 # Run prediction
-                results = model.predict(frame)
+                results = model.predict(frame, device=device)
 
                 # Get the plotted result image
                 plotted_img = results[0].plot()
