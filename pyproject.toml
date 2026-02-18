@@ -1,9 +1,10 @@
 [project]
 name = "realtime-detection-yolo26"
 version = "0.1.0"
-description = "Add your description here"
-requires-python = ">=3.14"
+description = "Real-time object detection with YOLOE-26L and Grounding DINO"
+requires-python = ">=3.11"
 dependencies = [
+    # ── Shared / common packages ──────────────────────────────────────────
     "aioice==0.10.2",
     "aiortc==1.14.0",
     "altair==6.0.0",
@@ -15,7 +16,6 @@ dependencies = [
     "cffi==2.0.0",
     "charset-normalizer==3.4.4",
     "click==8.3.1",
-    "clip @ git+https://github.com/ultralytics/CLIP.git@643beff3883b5720d94b6b9c9eca12fa9fb72fb1",
     "contourpy==1.3.3",
     "cryptography==46.0.3",
     "cycler==0.12.1",
@@ -39,6 +39,7 @@ dependencies = [
     "narwhals==2.15.0",
     "networkx==3.6.1",
     "numpy==2.4.1",
+    # CUDA packages: Linux / Windows only (NVIDIA GPU acceleration)
     "nvidia-cublas-cu12==12.8.4.1; sys_platform != 'darwin'",
     "nvidia-cuda-cupti-cu12==12.8.90; sys_platform != 'darwin'",
     "nvidia-cuda-nvrtc-cu12==12.8.93; sys_platform != 'darwin'",
@@ -85,16 +86,36 @@ dependencies = [
     "sympy==1.14.0",
     "tenacity==9.1.2",
     "toml==0.10.2",
+    # PyTorch: macOS uses the default PyPI build (MPS support is built-in);
+    # Linux/Windows gets CUDA 12.x wheels via the nvidia-* packages above.
     "torch==2.9.1",
     "torchvision==0.24.1",
     "tornado==6.5.4",
     "tqdm==4.67.1",
+    # Triton (kernel compiler) is Linux-only
     "triton==3.5.1; sys_platform != 'darwin'",
     "typing_extensions==4.15.0",
     "tzdata==2025.3",
-    "ultralytics==8.4.6",
-    "ultralytics-thop==2.0.18",
     "urllib3==2.6.3",
     "watchdog==6.0.0",
     "wcwidth==0.2.14",
+]
+
+[project.optional-dependencies]
+# ── Ultralytics YOLO backend (app.py / cli.py) ────────────────────────────
+yolo = [
+    "clip @ git+https://github.com/ultralytics/CLIP.git@643beff3883b5720d94b6b9c9eca12fa9fb72fb1",
+    "ultralytics==8.4.6",
+    "ultralytics-thop==2.0.18",
+]
+
+# ── Grounding DINO backend (app_dino.py / cli_dino.py) ───────────────────
+# On macOS the standard PyTorch wheel already includes MPS support;
+# no extra index URL is needed.  On Linux, install torch with CUDA first:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+# then install this extra set.
+dino = [
+    "groundeddino_vl",
+    "supervision",
+    "transformers>=4.30,<5",
 ]
