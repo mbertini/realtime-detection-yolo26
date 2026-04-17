@@ -1,290 +1,183 @@
 # YOLO26 Real-Time Object Detection
 
+A unified application for text-prompted object detection and segmentation using multiple backends:
+- **YOLOE-26L-Seg** for fast real-time inference
+- **Grounding DINO** for high-accuracy zero-shot detection
+- **SAM3** for semantic segmentation
 
-https://github.com/user-attachments/assets/0b77b6c8-b7a9-4112-b82e-6873e8463654
-
-
-
-
-A powerful application for real-time object detection and segmentation using YOLOE-26L with text prompts. Detect any object by simply typing what you're looking for. Available as both a web UI (Streamlit) and command-line interface (CLI).
+You can run the project as either:
+- **Web UI** (`app.py`, Streamlit)
+- **CLI** (`cli.py`, OpenCV window or headless mode)
 
 ## Features
 
-- **Text-Prompted Detection**: Enter any object class (e.g., "person", "car", "dog") and the model will detect it
-- **Two Interfaces**:
-  - **Streamlit Web UI**: Interactive browser-based interface
-  - **CLI**: Command-line interface with OpenCV window display
-- **Multiple Input Modes**:
-  - Upload/Process Images
-  - Upload/Process Videos with configurable frame skip
-  - Live Camera/Webcam: Real-time detection
-- **Multiple Model Backends**:
-  - **YOLOE-26L**: Fast real-time detection and segmentation
-  - **Grounding DINO**: High-accuracy zero-shot object detection
-  - **SAM3**: Advanced semantic segmentation
-- **Instance Segmentation**: Uses YOLOE-26L-Seg and SAM3 models for pixel-level object segmentation
-- **Hardware Acceleration**: 
-  - **MPS** (Metal Performance Shaders) for Apple Silicon Macs - up to 10x faster
-  - **CUDA** for NVIDIA GPUs
-  - Automatic fallback to CPU
+- Text-prompted detection (`--prompt`)
+- Multiple input modes: image, video, webcam
+- Backend selection: `yolo`, `dino`, `sam`
+- Automatic hardware selection: **MPS > CUDA > CPU**
+- Optional output saving for image/video workflows
+- Headless processing for scripts/servers
 
 ## Requirements
 
-- Python 3.14+ (or 3.10+ for manual setup)
-- macOS (with Apple Silicon for MPS), Linux, or Windows
-- Webcam (optional, for live camera mode)
-- Model file: `yoloe-26l-seg.pt`
+- Python `>=3.11` (from `pyproject.toml`)
+- macOS, Linux, or Windows
+- Optional webcam (for live mode)
+- Model files in project root:
+  - `yoloe-26l-seg.pt` (YOLO backend)
+  - `sam3.pt` (SAM backend)
 
-## Quick Start
+## Installation
 
-### Installation (using UV)
+### Recommended (UV)
 
-1. **Install UV** (if not already installed):
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-2. **Clone and setup**:
-```bash
 git clone <repository-url>
 cd realtime-detection-yolo26
-# Install with all model backends (YOLO, DINO, SAM)
 uv sync --all-extras
 ```
 
-3. **Run the application**:
+### Selective extras
 
-**Web UI:**
 ```bash
-uv run streamlit run app.py
+uv sync --extra yolo
+uv sync --extra dino --extra sam
 ```
 
-**CLI:**
-```bash
-# Detect persons in an image using YOLO (default)
-uv run python cli.py image photo.jpg --prompt person
+### Alternative (pip)
 
-# Detect using Grounding DINO
-uv run python cli.py image photo.jpg --type dino --prompt "person . car"
-
-# Segment using SAM3
-uv run python cli.py image photo.jpg --type sam --prompt "person"
-```
-
-See [QUICKSTART.md](QUICKSTART.md) for more details.
-
-### Alternative Installation (using pip)
-
-If you prefer not to use `uv`, you can install using standard `pip`:
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd realtime-detection-yolo26
-```
-
-2. Create and activate a virtual environment:
 ```bash
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# or
-venv\Scripts\activate  # Windows
-```
-
-3. Install dependencies:
-```bash
+source venv/bin/activate
 pip install .[yolo,dino,sam]
 ```
 
-4. Run the application:
-```bash
-# Web UI
-streamlit run app.py
+## Quick Start
 
-# CLI
-python cli.py image photo.jpg --prompt person
-```
+### Web UI
 
-## Usage
-
-### Streamlit Web UI
-
-We provide a unified web interface that allows you to switch between different model backends in the sidebar:
-
-| Model | Best For |
-|-------|----------|
-| YOLOE-26L | Real-time speed, basic segmentation |
-| Grounding DINO | Complex queries, highest detection accuracy |
-| SAM3 | Precise semantic segmentation |
-
-To run the app:
 ```bash
 uv run streamlit run app.py
 ```
 
-The app will open in your browser at `http://localhost:8501`.
+Then open `http://localhost:8501` and select backend + mode in the sidebar.
 
-#### Modes
-
-**Upload Image**
-1. Select "Upload Image" from the dropdown
-2. Upload a JPG, PNG, or JPEG image
-3. Enter the object class to detect
-4. View the detection results with segmentation masks
-
-**Upload Video**
-1. Select "Upload Video" from the dropdown
-2. Upload an MP4, AVI, or MOV video file
-3. Enter the object class to detect
-4. Adjust the frame skip slider (higher values = faster processing)
-5. Watch the processed video with detections
-
-**Live Camera**
-1. Select "Live Camera" from the dropdown
-2. Enter the object class to detect
-3. Allow browser access to your webcam
-4. View real-time detections
-
-### Command Line Interface (CLI)
-
-The unified CLI tool (`cli.py`) supports all model backends using the `--type` flag (`yolo`, `dino`, or `sam`).
-
-#### Examples
+### CLI
 
 ```bash
-# YOLO (Default) - Fast processing
+# YOLO (default)
 uv run python cli.py image photo.jpg --prompt person
 
-# Grounding DINO - High accuracy zero-shot detection
-# Use " . " as a separator for multiple classes.
-uv run python cli.py video input.mp4 --type dino --prompt "car . truck" --output result.mp4
+# Grounding DINO
+uv run python cli.py image photo.jpg --type dino --prompt "person . car"
 
-# SAM3 - Advanced semantic segmentation
-uv run python cli.py webcam --type sam --prompt "person"
+# SAM3
+uv run python cli.py image photo.jpg --type sam --prompt "person"
 ```
 
-For complete CLI documentation, see [CLI_GUIDE.md](CLI_GUIDE.md).
+## CLI Reference
 
-#### CLI Features
-
-- **OpenCV Window Display**: Real-time visualization of detections
-- **Save Results**: Output processed images and videos
-- **Frame Skipping**: Process every Nth frame for faster video processing
-- **Interactive Controls**: 
-  - Press 'Q' to quit during video/webcam
-  - Press 'S' to save frames during webcam mode
-- **Device Selection**: Auto-detect or manually specify MPS/CUDA/CPU
-- **Headless Mode**: Run without display for servers/scripts
-
-#### CLI Examples
+### Syntax
 
 ```bash
-# Use specific camera
-uv run python cli.py webcam --prompt face --camera-id 1
-
-# Process every 5th frame
-uv run python cli.py video large.mp4 --prompt bus --frame-skip 5
-
-# Force CPU usage
-uv run python cli.py image photo.jpg --prompt person --device cpu
-
-# Use custom YOLO model
-uv run python cli.py image photo.jpg --type yolo --prompt custom --model my_model.pt
+uv run python cli.py <mode> [input] --type <yolo|dino|sam> --prompt "<classes>" [options]
 ```
 
-For complete CLI documentation, see [CLI_GUIDE.md](CLI_GUIDE.md).
+### Modes
+
+- `image` - process one image
+- `video` - process a video file
+- `webcam` - process live camera frames
+
+### Common examples
+
+```bash
+# Save image output
+uv run python cli.py image input.jpg --prompt car --output result.jpg
+
+# Process video with frame skipping
+uv run python cli.py video input.mp4 --prompt person --frame-skip 3 --output out.mp4
+
+# Headless mode
+uv run python cli.py video input.mp4 --prompt person --no-show --output out.mp4
+
+# Webcam with a non-default camera
+uv run python cli.py webcam --prompt person --camera-id 1
+```
+
+### Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--type` | Backend: `yolo`, `dino`, `sam` | `yolo` |
+| `--prompt` | Prompt/classes string | None |
+| `--model` | Custom model path | backend-specific |
+| `--output`, `-o` | Output file path | None |
+| `--no-show` | Disable OpenCV display | `False` |
+| `--device` | `auto`, `mps`, `cuda`, `cpu` | `auto` |
+| `--camera-id` | Webcam id | `0` |
+| `--frame-skip` | Process every Nth video frame | `1` |
+| `--conf` | Confidence (YOLO/SAM) | `0.25` |
+| `--box-threshold` | Box threshold (DINO) | `0.35` |
+| `--text-threshold` | Text threshold (DINO) | `0.25` |
+
+### Interactive controls
+
+- Webcam: press `q` to quit, `s` to save frame
+- Video preview: press `q` to quit
 
 ## Hardware Acceleration
 
-The application automatically detects and uses the best available hardware:
+The app auto-selects the best available device:
+- **MPS** (Apple Silicon M1/M2/M3/M4)
+- **CUDA** (NVIDIA GPU)
+- **CPU** fallback
 
-- **MPS (Metal Performance Shaders)**: Apple Silicon Macs (M1/M2/M3)
-  - Requires macOS 12.3 or later
-  - Up to 10x faster than CPU
-  - Enabled by default on compatible systems
+Verify detection setup:
 
-- **CUDA**: NVIDIA GPUs on Linux/Windows
-  - Automatically detected when available
-  - Significant speedup for inference
+```bash
+uv run python test_device.py
+```
 
-- **CPU**: Fallback for all systems
-  - Works everywhere but slower
+## Troubleshooting
 
-To verify which device is being used:
-- **Web UI**: Look for "Using device: MPS/CUDA/CPU" message
-- **CLI**: Device is printed during model loading
+### Camera not found
+- Grant camera permissions to terminal/IDE
+- Try a different `--camera-id` (0, 1, 2...)
 
-For more details, see [DEVICE_SUPPORT.md](DEVICE_SUPPORT.md).
+### Model file missing
+- Ensure `yoloe-26l-seg.pt` / `sam3.pt` exist in project root
+- Or provide `--model /path/to/model.pt`
 
-## Models
+### MPS not available on macOS
+- Requires macOS 12.3+ and Apple Silicon
+- The app falls back to CPU automatically
 
-This project supports multiple state-of-the-art vision models:
-
-1.  **YOLOE-26L-Seg**: A text-promptable object detection and segmentation model from Ultralytics. Supports open-vocabulary detection.
-2.  **Grounding DINO**: A state-of-the-art zero-shot object detector that can detect any object described by a text prompt with high accuracy.
-3.  **SAM3 (Segment Anything Model 3)**: The latest version of the Segment Anything Model, providing high-quality semantic segmentation.
+### Slow inference
+- First inference is slower due to model warmup
+- Use `--frame-skip` for large videos
+- Reduce input resolution if needed
 
 ## Project Structure
 
-```
+```text
 realtime-detection-yolo26/
-├── app.py                 # Unified Streamlit app (YOLO/DINO/SAM)
-├── cli.py                 # Unified CLI tool (YOLO/DINO/SAM)
-├── pyproject.toml         # Project config (UV/pip)
-├── uv.lock               # UV dependency lock file
-├── yoloe-26l-seg.pt      # YOLO model weights (not in repo)
-├── sam3.pt               # SAM3 model weights (not in repo)
-├── test_device.py        # Device detection test script
-├── README.md             # This file
-├── QUICKSTART.md         # Quick start guide
-├── CLI_GUIDE.md          # Unified CLI documentation
-├── DINO_SAM_GUIDE.md     # DINO and SAM usage guide
-└── DEVICE_SUPPORT.md     # Hardware acceleration details
+|- app.py
+|- cli.py
+|- test_device.py
+|- yoloe-26l-seg.pt
+|- sam3.pt
+|- README.md
+|- ARCHITECTURE.MD
+|- pyproject.toml
+`- uv.lock
 ```
 
 ## Documentation
 
-- **[QUICKSTART.md](QUICKSTART.md)** - Get started quickly with all models
-- **[CLI_GUIDE.md](CLI_GUIDE.md)** - YOLO CLI documentation and examples
-- **[DINO_SAM_GUIDE.md](DINO_SAM_GUIDE.md)** - Detailed guide for DINO and SAM
-- **[DEVICE_SUPPORT.md](DEVICE_SUPPORT.md)** - MPS/CUDA/CPU support details
-
-## Testing
-
-Test that everything is working:
-
-```bash
-# Test device detection
-uv run python test_device.py
-
-# Test web UI (YOLO)
-uv run streamlit run app.py
-```
-
-## Performance Tips
-
-1. **Use hardware acceleration**: MPS on Mac, CUDA on Linux/Windows with NVIDIA GPU
-2. **Frame skipping**: For videos, use `--frame-skip` or adjust slider in web UI
-3. **Resolution**: Lower resolution cameras/videos process faster
-4. **First inference**: Initial model warmup takes longer, subsequent frames are faster
-
-## Troubleshooting
-
-### MPS Not Available
-- Ensure you have macOS 12.3 or later
-- Verify you have Apple Silicon (M1/M2/M3)
-- Will automatically fall back to CPU
-
-### Camera Not Found
-- Check camera permissions in System Settings (macOS)
-- Try different `--camera-id` values (0, 1, 2, etc.)
-- Ensure camera is not in use by another application
-
-### Model File Not Found
-- Ensure `yoloe-26l-seg.pt` is in the project directory
-- Or specify path with `--model` flag in CLI
-
-For more troubleshooting, see [QUICKSTART.md](QUICKSTART.md) and [CLI_GUIDE.md](CLI_GUIDE.md).
+- `README.md` - setup, quick start, and complete CLI usage
+- `ARCHITECTURE.MD` - backend architecture, device/runtime model, and design details
 
 ## License
 
