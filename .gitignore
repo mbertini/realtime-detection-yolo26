@@ -1,3 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+build/
+dist/
+*.egg-info/
+
+# IDEs
+.idea/
+.vscode/
+
+# Project specific
+runs/
+*.pt
 mobileclip2_b.ts
-yoloe-26l-seg.pt
-sam3.pt
+
+# UV
+.uv

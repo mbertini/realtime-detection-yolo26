@@ -102,21 +102,21 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# ── Ultralytics YOLO backend (app.py / cli.py) ────────────────────────────
+# ── Ultralytics YOLO backend ───────────────────────────────────────────
 yolo = [
     "clip @ git+https://github.com/ultralytics/CLIP.git",
     "ultralytics==8.4.6",
     "ultralytics-thop==2.0.18",
 ]
 
-# ── SAM3 backend (app_sam.py) ─────────────────────────────────────────────
+# ── SAM3 backend ───────────────────────────────────────────────────
 sam = [
     "clip @ git+https://github.com/ultralytics/CLIP.git",
     "ultralytics==8.4.6",
     "ultralytics-thop==2.0.18",
 ]
 
-# ── Grounding DINO backend (app_dino.py / cli_dino.py) ───────────────────
+# ── Grounding DINO backend ──────────────────────────────────────────
 # On macOS the standard PyTorch wheel already includes MPS support;
 # no extra index URL is needed.  On Linux, install torch with CUDA first:
 #   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
