@@ -11,6 +11,7 @@ The repository exposes two entry points over the same backend family:
 
 Both interfaces support the same backend choices:
 - `yolo` / `YOLO`: YOLOE-26L-Seg via Ultralytics
+- `yolo-world` / `YOLO-World`: open-vocabulary detection via Ultralytics
 - `dino` / `Grounding DINO`: zero-shot text-guided detection
 - `sam` / `SAM3`: semantic segmentation via Ultralytics SAM3 predictor
 
@@ -21,6 +22,12 @@ Both interfaces support the same backend choices:
 - Loads from `yoloe-26l-seg.pt`
 - Prompt classes are injected dynamically per request/frame
 - Best for low-latency, real-time use
+
+### YOLO-World
+
+- Loads from Ultralytics `yolov8s-world.pt` by default
+- Prompt classes are injected dynamically per request/frame with YOLO-World's open-vocabulary API
+- Best when the requested classes are not fixed ahead of time and box detection is sufficient
 
 ### Grounding DINO
 
@@ -90,7 +97,7 @@ uv run python cli.py image photo.jpg --prompt person --device cuda
 
 - Core dependencies include Streamlit/OpenCV/torch runtime and shared utilities.
 - Optional backend extras:
-  - `yolo`: Ultralytics + CLIP dependency
+  - `yolo`: Ultralytics + CLIP dependency for YOLOE and YOLO-World
   - `sam`: Ultralytics + CLIP dependency
   - `dino`: `groundeddino_vl`, `supervision`, and `transformers`
 - CUDA-specific packages (`nvidia-*-cu12`, `triton`) are excluded on macOS via platform markers.
@@ -101,11 +108,11 @@ uv run python cli.py image photo.jpg --prompt person --device cuda
 
 - CLI accepts `--prompt` and splits prompt text into classes.
 - DINO usage is most reliable with ` . ` separators for multi-class prompts.
-- SAM/YOLO also accept single-class prompts cleanly.
+- SAM/YOLO/YOLO-World also accept single-class prompts cleanly.
 
 ### Thresholds
 
-- `--conf`: confidence threshold for YOLO and SAM
+- `--conf`: confidence threshold for YOLO, YOLO-World, and SAM
 - `--box-threshold`: DINO box filtering
 - `--text-threshold`: DINO text-image matching
 

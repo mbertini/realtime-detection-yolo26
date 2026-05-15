@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Vision Model Hub CLI - Unified Command Line Interface for YOLO, Grounding DINO, and SAM3
+Vision Model Hub CLI - Unified Command Line Interface for YOLO, YOLO-World, Grounding DINO, and SAM3
 Supports image, video, and webcam detection with OpenCV window display
 """
 
@@ -11,7 +11,7 @@ import sys
 import re
 import numpy as np
 from pathlib import Path
-from ultralytics import YOLO
+from ultralytics import YOLO, YOLOWorld
 from ultralytics.models.sam import SAM3SemanticPredictor
 import supervision as sv
 
@@ -133,6 +133,18 @@ class YOLOPredictor:
     def predict(self, image, classes, **kwargs):
         if classes:
             self.model.set_classes(classes, self.model.get_text_pe(classes))
+        results = self.model.predict(image, device=self.device, conf=kwargs.get("conf", 0.25), verbose=False)
+        return results[0].plot()
+
+class YOLOWorldPredictor:
+    def __init__(self, model_path, device):
+        self.model = YOLOWorld(model_path)
+        self.model.to(device)
+        self.device = device
+
+    def predict(self, image, classes, **kwargs):
+        if classes:
+            self.model.set_classes(classes)
         results = self.model.predict(image, device=self.device, conf=kwargs.get("conf", 0.25), verbose=False)
         return results[0].plot()
 
@@ -270,7 +282,7 @@ def main():
     parser = argparse.ArgumentParser(description="Unified Vision CLI")
     parser.add_argument("mode", choices=["image", "video", "webcam"], help="Processing mode")
     parser.add_argument("input", nargs="?", help="Input file (not for webcam)")
-    parser.add_argument("--type", choices=["yolo", "dino", "sam"], default="yolo", help="Model type")
+    parser.add_argument("--type", choices=["yolo", "yolo-world", "dino", "sam"], default="yolo", help="Model type")
     parser.add_argument("--model", type=str, help="Model path (default depends on type)")
     parser.add_argument("--prompt", type=str, help='Classes/Prompt (e.g., "person . car")')
     parser.add_argument("--output", "-o", type=str, help="Output path")
@@ -295,6 +307,9 @@ def main():
         if args.type == "yolo":
             model_path = args.model or "yoloe-26l-seg.pt"
             predictor = YOLOPredictor(model_path, device)
+        elif args.type == "yolo-world":
+            model_path = args.model or "yolov8s-world.pt"
+            predictor = YOLOWorldPredictor(model_path, device)
         elif args.type == "dino":
             predictor = DINOPredictor(device, config_path=None, weights_path=args.model)
         elif args.type == "sam":
@@ -308,4 +323,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

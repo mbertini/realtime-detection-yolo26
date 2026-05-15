@@ -2,6 +2,7 @@
 
 A unified application for text-prompted object detection and segmentation using multiple backends:
 - **YOLOE-26L-Seg** for fast real-time inference
+- **YOLO-World** for open-vocabulary detection via Ultralytics
 - **Grounding DINO** for high-accuracy zero-shot detection
 - **SAM3** for semantic segmentation
 
@@ -13,7 +14,7 @@ You can run the project as either:
 
 - Text-prompted detection (`--prompt`)
 - Multiple input modes: image, video, webcam
-- Backend selection: `yolo`, `dino`, `sam`
+- Backend selection: `yolo`, `yolo-world`, `dino`, `sam`
 - Automatic hardware selection: **MPS > CUDA > CPU**
 - Optional output saving for image/video workflows
 - Headless processing for scripts/servers
@@ -72,6 +73,9 @@ uv run python cli.py image photo.jpg --prompt person
 # Grounding DINO
 uv run python cli.py image photo.jpg --type dino --prompt "person . car"
 
+# YOLO-World
+uv run python cli.py image photo.jpg --type yolo-world --prompt "person . car"
+
 # SAM3
 uv run python cli.py image photo.jpg --type sam --prompt "person"
 ```
@@ -81,7 +85,7 @@ uv run python cli.py image photo.jpg --type sam --prompt "person"
 ### Syntax
 
 ```bash
-uv run python cli.py <mode> [input] --type <yolo|dino|sam> --prompt "<classes>" [options]
+uv run python cli.py <mode> [input] --type <yolo|yolo-world|dino|sam> --prompt "<classes>" [options]
 ```
 
 ### Modes
@@ -110,7 +114,7 @@ uv run python cli.py webcam --prompt person --camera-id 1
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--type` | Backend: `yolo`, `dino`, `sam` | `yolo` |
+| `--type` | Backend: `yolo`, `yolo-world`, `dino`, `sam` | `yolo` |
 | `--prompt` | Prompt/classes string | None |
 | `--model` | Custom model path | backend-specific |
 | `--output`, `-o` | Output file path | None |
@@ -149,6 +153,7 @@ uv run python test_device.py
 ### Model file missing
 - Ensure `yoloe-26l-seg.pt` / `sam3.pt` exist in project root
 - Or provide `--model /path/to/model.pt`
+- YOLO-World defaults to Ultralytics `yolov8s-world.pt`, which downloads automatically if needed
 
 ### MPS not available on macOS
 - Requires macOS 12.3+ and Apple Silicon

@@ -7,7 +7,7 @@ import numpy as np
 import streamlit as st
 import torch
 from streamlit_webrtc import webrtc_streamer
-from ultralytics import YOLO
+from ultralytics import YOLO, YOLOWorld
 from ultralytics.models.sam import SAM3SemanticPredictor
 import supervision as sv
 
@@ -34,6 +34,13 @@ def load_yolo_model():
     device = get_device()
     # YOLO here refers to YOLOE-26L specifically in this project
     model = YOLO("yoloe-26l-seg.pt")
+    model.to(device)
+    return model
+
+@st.cache_resource
+def load_yolo_world_model():
+    device = get_device()
+    model = YOLOWorld("yolov8s-world.pt")
     model.to(device)
     return model
 
@@ -174,6 +181,11 @@ class UnifiedVideoProcessor:
                 model.set_classes(names, model.get_text_pe(names))
                 results = model.predict(img, device=self.device, conf=self.conf)
                 plotted_img = results[0].plot()
+            elif self.model_type == "YOLO-World":
+                model = load_yolo_world_model()
+                model.set_classes(self.current_classes)
+                results = model.predict(img, device=self.device, conf=self.conf)
+                plotted_img = results[0].plot()
             elif self.model_type == "Grounding DINO":
                 model = load_dino_model()
                 detections = model.predict_with_classes(
@@ -203,16 +215,16 @@ st.title("Real-Time Vision Model Hub")
 
 # Sidebar - Model Selection
 st.sidebar.title("Configuration")
-model_choice = st.sidebar.selectbox("Select Model Backend", ["YOLO", "Grounding DINO", "SAM3"])
+model_choice = st.sidebar.selectbox("Select Model Backend", ["YOLO", "YOLO-World", "Grounding DINO", "SAM3"])
 device = get_device()
 st.sidebar.info(f"Using device: {device.upper()}")
 
 # Sidebar - Common Parameters
 st.sidebar.subheader("Parameters")
-if model_choice == "YOLO":
-    word = st.sidebar.text_input("Enter a class (e.g., person)")
+if model_choice in ("YOLO", "YOLO-World"):
+    word = st.sidebar.text_input("Enter objects (e.g., person, car)")
     conf = st.sidebar.slider("Confidence", 0.01, 1.0, 0.25)
-    classes = [word.strip()] if word.strip() else []
+    classes = parse_classes(word)
     box_threshold = 0.35 # defaults
     text_threshold = 0.25
 elif model_choice == "Grounding DINO":
@@ -241,6 +253,11 @@ if mode == "Upload Image":
             if model_choice == "YOLO":
                 model = load_yolo_model()
                 model.set_classes(classes, model.get_text_pe(classes))
+                results = model.predict(image, device=device, conf=conf)
+                plotted_img = results[0].plot()
+            elif model_choice == "YOLO-World":
+                model = load_yolo_world_model()
+                model.set_classes(classes)
                 results = model.predict(image, device=device, conf=conf)
                 plotted_img = results[0].plot()
             elif model_choice == "Grounding DINO":
@@ -274,6 +291,7 @@ elif mode == "Upload Video":
             
             # Pre-load model
             if model_choice == "YOLO": model = load_yolo_model()
+            elif model_choice == "YOLO-World": model = load_yolo_world_model()
             elif model_choice == "Grounding DINO": model = load_dino_model()
             elif model_choice == "SAM3": predictor = load_sam_predictor()
 
@@ -285,6 +303,10 @@ elif mode == "Upload Video":
 
                 if model_choice == "YOLO":
                     model.set_classes(classes, model.get_text_pe(classes))
+                    results = model.predict(frame, device=device, conf=conf)
+                    plotted_img = results[0].plot()
+                elif model_choice == "YOLO-World":
+                    model.set_classes(classes)
                     results = model.predict(frame, device=device, conf=conf)
                     plotted_img = results[0].plot()
                 elif model_choice == "Grounding DINO":

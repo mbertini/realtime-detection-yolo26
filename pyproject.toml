@@ -1,7 +1,7 @@
 [project]
 name = "realtime-detection-yolo26"
 version = "0.1.0"
-description = "Real-time object detection with YOLOE-26L and Grounding DINO"
+description = "Real-time object detection with YOLOE-26L, YOLO-World, and Grounding DINO"
 requires-python = ">=3.11"
 dependencies = [
     # ── Shared / common packages ──────────────────────────────────────────
@@ -102,7 +102,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# ── Ultralytics YOLO backend ───────────────────────────────────────────
+# ── Ultralytics YOLO / YOLO-World backend ──────────────────────────────
 yolo = [
     "clip @ git+https://github.com/ultralytics/CLIP.git",
     "ultralytics==8.4.6",
